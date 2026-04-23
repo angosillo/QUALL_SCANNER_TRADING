@@ -1,0 +1,79 @@
+/* MOMO Scanner TUI Styles */
+
+Screen {
+    align: center middle;
+}
+
+DataTable {
+    height: 1fr;
+    border: solid green;
+}
+
+DataTable > .datatable--header {
+    background: $surface-darken-1;
+    color: $text;
+    text-style: bold;
+}
+
+DataTable > .datatable--cursor {
+    background: $primary-darken-2;
+    color: $text;
+}
+
+DataTable > .datatable--hover {
+    background: $primary-darken-3;
+}
+
+Static {
+    padding: 1 2;
+}
+
+.header {
+    background: $surface-darken-2;
+    color: $text;
+    text-style: bold;
+    content-align: center middle;
+    height: 3;
+}
+
+.footer {
+    background: $surface-darken-2;
+    color: $text;
+    height: 1;
+}
+
+.help-panel {
+    background: $surface;
+    border: solid $primary;
+    padding: 1 2;
+}
+
+.indicator-panel {
+    background: $surface;
+    border: solid $primary-darken-1;
+    padding: 1 2;
+    height: auto;
+}
+
+.chart-container {
+    background: $surface-darken-1;
+    border: solid $primary;
+    padding: 1;
+    height: 1fr;
+}
+
+.dialog {
+    background: $surface;
+    border: solid $primary;
+    padding: 1 2;
+    width: 60;
+    height: auto;
+}
+
+.dialog Input {
+    margin: 1 0;
+}
+
+.dialog Button {
+    margin: 1 0;
+}

@@ -8,9 +8,7 @@ First full download (2 years): ~30-60 minutes.
 
 import logging
 import time
-from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import yfinance as yf
 

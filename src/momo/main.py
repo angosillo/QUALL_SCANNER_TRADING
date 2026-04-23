@@ -191,6 +191,73 @@ def cmd_full(args):
     print("=" * 60)
 
 
+def cmd_tui(args):
+    """Launch the Textual TUI."""
+    from momo.ui.app import MomoApp
+    db_path = get_db_path()
+    app = MomoApp(db_path=db_path)
+    app.run()
+
+
+def cmd_watchlist(args):
+    """Watchlist management CLI."""
+    from momo.watchlist import manager as wl
+    db_path = get_db_path()
+    action = args.wl_action
+
+    if action == "list":
+        df = wl.list_watchlists(db_path)
+        if df.empty:
+            print("No watchlists found.")
+        else:
+            print(df.to_string(index=False))
+    elif action == "create":
+        name = args.name
+        desc = getattr(args, "description", "")
+        try:
+            wl_id = wl.create_watchlist(db_path, name, desc)
+            print(f"✅ Created watchlist '{name}' (id={wl_id})")
+        except ValueError as exc:
+            print(f"❌ {exc}")
+    elif action == "delete":
+        try:
+            wl.delete_watchlist(db_path, args.watchlist_id)
+            print(f"✅ Deleted watchlist {args.watchlist_id}")
+        except ValueError as exc:
+            print(f"❌ {exc}")
+    elif action == "add":
+        # Resolve watchlist by name or id
+        wls = wl.list_watchlists(db_path)
+        target = wls[wls["name"] == args.name]
+        if target.empty:
+            print(f"❌ Watchlist '{args.name}' not found")
+            return
+        wl_id = int(target.iloc[0]["id"])
+        wl.add_symbol(db_path, wl_id, args.symbol, notes=getattr(args, "notes", ""))
+        print(f"✅ Added {args.symbol} to '{args.name}'")
+    elif action == "remove":
+        wls = wl.list_watchlists(db_path)
+        target = wls[wls["name"] == args.name]
+        if target.empty:
+            print(f"❌ Watchlist '{args.name}' not found")
+            return
+        wl_id = int(target.iloc[0]["id"])
+        wl.remove_symbol(db_path, wl_id, args.symbol)
+        print(f"✅ Removed {args.symbol} from '{args.name}'")
+    elif action == "show":
+        wls = wl.list_watchlists(db_path)
+        target = wls[wls["name"] == args.name]
+        if target.empty:
+            print(f"❌ Watchlist '{args.name}' not found")
+            return
+        wl_id = int(target.iloc[0]["id"])
+        items = wl.get_items(db_path, wl_id)
+        print(f"\nWatchlist: {args.name}")
+        print(f"Items: {len(items)}\n")
+        if not items.empty:
+            print(items.to_string(index=False))
+
+
 def cli():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -224,6 +291,34 @@ def cli():
     p_full = subparsers.add_parser("full", help="Full pipeline: init + universe + download + scan")
     p_full.add_argument("--limit", type=int, help="Limit to N tickers (for testing)")
 
+    # tui
+    subparsers.add_parser("tui", help="Launch interactive TUI dashboard")
+
+    # watchlist
+    p_watchlist = subparsers.add_parser("watchlist", help="Manage watchlists")
+    wl_sub = p_watchlist.add_subparsers(dest="wl_action", help="Watchlist actions")
+
+    wl_sub.add_parser("list", help="List watchlists")
+
+    wl_create = wl_sub.add_parser("create", help="Create a watchlist")
+    wl_create.add_argument("name", help="Watchlist name")
+    wl_create.add_argument("--description", default="", help="Description")
+
+    wl_delete = wl_sub.add_parser("delete", help="Delete a watchlist")
+    wl_delete.add_argument("watchlist_id", type=int, help="Watchlist ID")
+
+    wl_add = wl_sub.add_parser("add", help="Add symbol to watchlist")
+    wl_add.add_argument("name", help="Watchlist name")
+    wl_add.add_argument("symbol", help="Ticker symbol")
+    wl_add.add_argument("--notes", default="", help="Notes")
+
+    wl_remove = wl_sub.add_parser("remove", help="Remove symbol from watchlist")
+    wl_remove.add_argument("name", help="Watchlist name")
+    wl_remove.add_argument("symbol", help="Ticker symbol")
+
+    wl_show = wl_sub.add_parser("show", help="Show watchlist contents")
+    wl_show.add_argument("name", help="Watchlist name")
+
     args = parser.parse_args()
     setup_logging(args.log_level)
 
@@ -237,6 +332,8 @@ def cli():
         "download": cmd_download,
         "scan": cmd_scan,
         "full": cmd_full,
+        "tui": cmd_tui,
+        "watchlist": cmd_watchlist,
     }
 
     cmd_func = commands.get(args.command)

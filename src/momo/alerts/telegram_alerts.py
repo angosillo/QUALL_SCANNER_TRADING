@@ -5,6 +5,8 @@ Telegram alert system — sends scan results and intraday alerts.
 import logging
 import os
 
+import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 

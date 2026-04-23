@@ -5,7 +5,6 @@ Returns 0-100 where 100 = strongest performer in the universe.
 Used to filter top N% or bottom N% of performers.
 """
 
-import numpy as np
 import pandas as pd
 
 

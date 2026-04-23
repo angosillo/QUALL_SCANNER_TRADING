@@ -36,7 +36,7 @@ def fetch_nasdaq_listed() -> pd.DataFrame:
     # The file is pipe-delimited with a footer line
     lines = resp.text.strip().split("\n")
     # Remove footer (last line starts with "File Creation Time")
-    data_lines = [l for l in lines if not l.startswith("File Creation Time")]
+    data_lines = [line for line in lines if not line.startswith("File Creation Time")]
     df = pd.read_csv(StringIO("\n".join(data_lines)), sep="|")
     df = df.rename(columns={
         "Symbol": "symbol",
@@ -58,7 +58,7 @@ def fetch_other_listed() -> pd.DataFrame:
     resp = requests.get(OTHER_URL, timeout=30)
     resp.raise_for_status()
     lines = resp.text.strip().split("\n")
-    data_lines = [l for l in lines if not l.startswith("File Creation Time")]
+    data_lines = [line for line in lines if not line.startswith("File Creation Time")]
     df = pd.read_csv(StringIO("\n".join(data_lines)), sep="|")
     df = df.rename(columns={
         "ACT Symbol": "symbol",
