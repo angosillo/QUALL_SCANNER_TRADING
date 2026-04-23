@@ -1,0 +1,21 @@
+[general]
+project_name = "MOMO Scanner"
+db_path = "data/momo.db"
+log_level = "INFO"
+
+[api_keys]
+fmp = ""            # Set via MOMO_FMP_KEY env var
+polygon = ""        # Set via MOMO_POLYGON_KEY env var
+telegram_token = "" # Set via MOMO_TELEGRAM_TOKEN env var
+telegram_chat_id = ""
+
+[scheduler]
+nightly_scan_time = "07:00"    # UTC — run before US market open (7AM UTC = 3AM ET)
+weekly_scan_day = "saturday"
+weekly_scan_time = "10:00"
+
+[data]
+history_days = 504             # ~2 years of trading days
+update_universe_days = 7       # Re-fetch ticker list weekly
+yfinance_batch_size = 80       # Tickers per yfinance download batch
+yfinance_batch_delay = 2.0     # Seconds between batches

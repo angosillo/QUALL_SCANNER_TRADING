@@ -1,0 +1,47 @@
+[scan]
+name = "Qullamaggie Setup"
+id = "qullamaggie_setup"
+description = "Acciones con momentum pero NO demasiado extendidas (máx +50% sobre SMA20)"
+frequency = "daily"
+side = "long"
+enabled = true
+
+[universe]
+type = "us_listed"
+
+[filters.price]
+min = 3.0
+
+[filters.volume]
+min_avg_volume = 100000
+min_dollar_volume = 3000000
+
+[filters.adr_percent]
+min = 3.0
+period = 20
+
+[filters.trend_intensity]
+min = 105.0
+
+[filters.extension]
+# Máximo +50% sobre SMA20 para evitar acciones demasiado extendidas
+max_pct_above_sma20 = 50.0
+
+[filters.rank]
+metric = "price_growth"
+period_days = 21
+percentile = "top"
+threshold = 10.0
+
+[scoring]
+enabled = true
+momentum_weight = 0.30
+trend_weight = 0.25
+volume_weight = 0.20
+volatility_weight = 0.15
+relative_strength_weight = 0.10
+
+[display]
+fields = ["symbol", "close", "volume", "adr_pct_20", "trend_intensity", "price_growth_1m", "composite_score"]
+sort_by = "composite_score"
+sort_order = "desc"

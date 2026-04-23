@@ -1,0 +1,36 @@
+[scan]
+name = "1-Year Losers"
+id = "one_year_losers"
+description = "Bottom 3.45% — beaten-down stocks potential bounce candidates"
+frequency = "daily"
+side = "long"
+enabled = true
+
+[universe]
+type = "us_listed"
+
+[filters.price]
+min = 1.0
+
+[filters.volume]
+min_avg_volume = 40000
+min_dollar_volume = 1500000
+
+[filters.rank]
+metric = "price_growth"
+period_days = 252
+percentile = "bottom"
+threshold = 3.45
+
+[scoring]
+enabled = true
+momentum_weight = 0.20
+trend_weight = 0.15
+volume_weight = 0.30    # Volume surge on bounce = signal
+volatility_weight = 0.20
+relative_strength_weight = 0.15
+
+[display]
+fields = ["symbol", "close", "volume", "price_growth_1y", "adr_pct_20", "trend_intensity", "composite_score"]
+sort_by = "price_growth_1y"
+sort_order = "asc"

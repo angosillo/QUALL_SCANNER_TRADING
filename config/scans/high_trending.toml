@@ -1,0 +1,37 @@
+[scan]
+name = "High Trending"
+id = "high_trending"
+description = "Stocks in sustained uptrends (TI > 108)"
+frequency = "daily"
+side = "long"
+enabled = true
+
+[universe]
+type = "us_listed"
+
+[filters.price]
+min = 1.0
+
+[filters.volume]
+min_avg_volume = 40000
+min_dollar_volume = 1500000
+
+[filters.adr_percent]
+min = 2.2
+period = 20
+
+[filters.trend_intensity]
+min = 108.0
+
+[scoring]
+enabled = true
+momentum_weight = 0.30
+trend_weight = 0.25
+volume_weight = 0.20
+volatility_weight = 0.15
+relative_strength_weight = 0.10
+
+[display]
+fields = ["symbol", "close", "volume", "trend_intensity", "adr_pct_20", "price_growth_1m", "composite_score"]
+sort_by = "trend_intensity"
+sort_order = "desc"

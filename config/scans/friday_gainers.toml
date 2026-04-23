@@ -1,0 +1,41 @@
+[scan]
+name = "Friday Gainers (Short Candidates)"
+id = "friday_gainers"
+description = "Top 5-day performers — primary source for SHORT ideas"
+frequency = "daily"
+side = "short"
+enabled = true
+
+[universe]
+type = "us_listed"
+
+[filters.price]
+min = 1.0
+
+[filters.volume]
+min_avg_volume = 40000
+min_dollar_volume = 1500000
+
+[filters.adr_percent]
+min = 2.2
+period = 20
+
+[filters.rank]
+metric = "price_growth"
+period_days = 5
+percentile = "top"
+threshold = 5.0
+
+[scoring]
+enabled = true
+momentum_weight = 0.40    # Higher = more overextended
+trend_weight = 0.15
+volume_weight = 0.25      # Volume spike = exhaustion
+volatility_weight = 0.10
+relative_strength_weight = 0.10
+invert_scores = true      # Higher overextension = higher short score
+
+[display]
+fields = ["symbol", "close", "volume", "price_growth_5d", "adr_pct_20", "trend_intensity", "composite_score"]
+sort_by = "price_growth_5d"
+sort_order = "desc"
