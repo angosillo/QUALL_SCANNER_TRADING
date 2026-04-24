@@ -15,8 +15,9 @@ def get_db_path() -> str:
     if config_path.exists():
         with open(config_path, "rb") as f:
             config = tomli.load(f)
-        return config.get("general", {}).get("db_path", "data/momo.db")
-    return "data/momo.db"
+        db_path = config.get("general", {}).get("db_path", "data/momo.db")
+        return str(config_path.parent / db_path)
+    return str(Path.cwd() / "data" / "momo.db")
 
 
 def load_web_config() -> dict[str, Any]:

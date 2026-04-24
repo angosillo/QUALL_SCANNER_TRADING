@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="page-header">
+    <h1>{{ scan.scan.name }}</h1>
+    <p class="muted">{{ scan.scan.description or '' }}</p>
+    <div class="actions-row">
+        <a href="/scan/{{ scan.scan.id }}" class="btn btn-secondary">← Vista Tabla</a>
+        <a href="/scan/{{ scan.scan.id }}.csv" class="btn btn-secondary">📥 CSV</a>
+        <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+    </div>
+</header>
+
+{% if symbols %}
+<section class="chart-grid-section">
+    <h2>Gráficos ({{ symbols|length }} acciones)</h2>
+    <div class="chart-grid">
+        {% for sym in symbols %}
+        <div class="chart-card">
+            <div class="chart-header">
+                <a href="/symbol/{{ sym }}" class="symbol-link">{{ sym }}</a>
+            </div>
+            <div class="chart-container">
+                <iframe
+                    src="https://s3.tradingview.com/embed-widget/mini-symbol-overview/?locale=es#{% raw %}{% endraw %}{\"symbol\":\"NASDAQ:{{ sym }}\",\"width\":\"100%\",\"height\":280,\"dateRange\":\"3M\",\"colorTheme\":\"dark\",\"trendLineColor\":\"rgba(63, 185, 80, 1)\",\"underLineColor\":\"rgba(63, 185, 80, 0.1)\",\"isTransparent\":false,\"autosize\":false,\"largeChartUrl\":\"\",\"noTimeScale\":false}"
+                    style="width:100%;height:280px;"
+                    frameborder="0"
+                    allowtransparency="true"
+                    scrolling="no"
+                    title="Gráfico {{ sym }}"
+                ></iframe>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="table-section">
+    <h2>Resumen</h2>
+    <div class="table-wrap">
+        <table class="data-table compact">
+            <thead>
+                <tr>
+                    {% for f in table_fields %}
+                    <th>{{ f.replace('_', ' ').title() }}</th>
+                    {% endfor %}
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for _, row in results.iterrows() %}
+                <tr>
+                    {% for f in table_fields %}
+                    <td>
+                        {% if f == 'symbol' %}
+                        <a href="/symbol/{{ row[f] }}">{{ row[f] }}</a>
+                        {% else %}
+                        {{ row[f] }}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td>
+                        <a href="/symbol/{{ row['symbol'] }}" class="btn-icon" title="Ver detalle">🔍</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% else %}
+<div class="empty-state">
+    <p>No hay resultados para este escaneo.</p>
+    <form method="post" action="/scans/run/{{ scan.scan.id }}" style="display:inline;">
+        <button type="submit" class="btn btn-primary">▶ Ejecutar ahora</button>
+    </form>
+</div>
+{% endif %}
+
+<style>
+.chart-grid-section {
+    margin-bottom: 2rem;
+}
+.chart-grid-section h2 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    color: var(--fg-default);
+}
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+@media (max-width: 1200px) {
+    .chart-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 768px) {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.chart-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+.chart-card:hover {
+    border-color: var(--accent);
+}
+.chart-header {
+    padding: 0.6rem 0.8rem;
+    background: var(--bg-overlay);
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.symbol-link {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--accent);
+    text-decoration: none;
+}
+.symbol-link:hover {
+    text-decoration: underline;
+}
+.chart-container {
+    width: 100%;
+    height: 280px;
+    background: #0d1117;
+}
+.chart-container iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+.table-section {
+    margin-top: 2rem;
+}
+.table-section h2 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    color: var(--fg-default);
+}
+.data-table.compact {
+    font-size: 0.85rem;
+}
+.data-table.compact th,
+.data-table.compact td {
+    padding: 0.4rem 0.6rem;
+}
+</style>
+{% endblock %}

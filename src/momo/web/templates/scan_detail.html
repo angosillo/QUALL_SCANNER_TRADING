@@ -6,6 +6,7 @@
 <div class="card">
     <div class="actions-row">
         <h2 style="margin:0; flex:1">{{ scan['scan']['name'] }} — {{ results | length }} resultados</h2>
+        <a href="/scan/{{ scan['scan']['id'] }}/charts" class="btn btn-primary">📊 Vista Gráficos</a>
         <form action="/scans/run/{{ scan['scan']['id'] }}" method="post">
             <button type="submit" class="btn">🔄 Re-ejecutar</button>
         </form>

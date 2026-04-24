@@ -72,6 +72,65 @@ async def scan_detail(request: Request, scan_id: str):
     )
 
 
+@router.get("/scan/{scan_id}/charts", response_class=HTMLResponse)
+async def scan_charts(request: Request, scan_id: str):
+    db_path = request.app.state.db_path
+    web_cfg = request.app.state.web_cfg
+    templates = request.app.state.templates
+
+    scans = load_all_scans("config/scans")
+    scan_config = next((s for s in scans if s["scan"]["id"] == scan_id), None)
+    if scan_config is None:
+        return templates.TemplateResponse(
+            request,
+            "error.html", {"message": f"Scan '{scan_id}' no encontrado"}, status_code=404
+        )
+
+    import sqlite3
+    df = pd.DataFrame()
+    try:
+        conn = sqlite3.connect(db_path)
+        query = """
+            SELECT * FROM scan_results
+            WHERE scan_id = ? AND run_date = (
+                SELECT MAX(run_date) FROM scan_results WHERE scan_id = ?
+            )
+            ORDER BY rank_in_scan
+        """
+        df = pd.read_sql(query, conn, params=(scan_id, scan_id))
+        conn.close()
+    except Exception as exc:
+        logger.warning(f"Could not load from DB: {exc}")
+
+    if df.empty:
+        try:
+            indicator_table = build_indicator_table(db_path)
+            if not indicator_table.empty:
+                df = run_scan(scan_config, indicator_table, db_path)
+        except Exception as exc:
+            logger.error(f"Scan execution failed: {exc}")
+
+    symbols = df["symbol"].tolist() if not df.empty else []
+
+    # Pick 3 key fields for the summary table
+    table_fields = ["symbol", "close", "volume"]
+    available = [c for c in df.columns if c in table_fields]
+    if len(available) < 3:
+        available = list(df.columns)[:3] if not df.empty else ["symbol"]
+
+    return templates.TemplateResponse(
+        request,
+        "scan_charts.html",
+        {
+            "title": f"{scan_config['scan']['name']} — Charts",
+            "scan": scan_config,
+            "symbols": symbols,
+            "results": df,
+            "table_fields": available,
+        },
+    )
+
+
 @router.get("/scan/{scan_id}.csv")
 async def scan_export_csv(request: Request, scan_id: str):
     db_path = request.app.state.db_path
