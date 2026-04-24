@@ -311,4 +311,5 @@ def build_plotly_figure(
     fig.update_xaxes(title_text="Date", row=1 if (show_volume and "volume" in df.columns) else 1, col=1)
     fig.update_yaxes(title_text="Price", row=1, col=1)
 
-    return fig.to_dict()
+    import json
+    return json.loads(fig.to_json())
