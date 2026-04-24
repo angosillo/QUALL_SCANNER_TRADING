@@ -112,6 +112,36 @@ async def scan_charts(request: Request, scan_id: str):
 
     symbols = df["symbol"].tolist() if not df.empty else []
 
+    # Fetch exchange per symbol from tickers table
+    # Maps raw exchange codes to TradingView-compatible prefixes
+    _TV_EXCHANGE_MAP = {
+        "Q": "NASDAQ", "NASDAQ": "NASDAQ",
+        "N": "NYSE",   "NYSE": "NYSE",
+        "A": "AMEX",   "AMEX": "AMEX",
+        "P": "AMEX",   "NYSE ARCA": "AMEX",
+        "Z": "BATS",   "BATS": "BATS",
+    }
+    symbol_tv = {}
+    if symbols:
+        try:
+            import sqlite3
+            conn2 = sqlite3.connect(db_path)
+            placeholders = ",".join("?" * len(symbols))
+            rows = conn2.execute(
+                f"SELECT symbol, exchange FROM tickers WHERE symbol IN ({placeholders})",
+                symbols,
+            ).fetchall()
+            conn2.close()
+            for sym, exch in rows:
+                tv_exch = _TV_EXCHANGE_MAP.get((exch or "").upper(), "NASDAQ")
+                symbol_tv[sym] = f"{tv_exch}:{sym}"
+        except Exception as exc:
+            logger.warning(f"Could not fetch exchanges: {exc}")
+        # Fallback: any symbol not in DB gets NASDAQ prefix
+        for sym in symbols:
+            if sym not in symbol_tv:
+                symbol_tv[sym] = f"NASDAQ:{sym}"
+
     # Pick 3 key fields for the summary table
     table_fields = ["symbol", "close", "volume"]
     available = [c for c in df.columns if c in table_fields]
@@ -125,6 +155,7 @@ async def scan_charts(request: Request, scan_id: str):
             "title": f"{scan_config['scan']['name']} — Charts",
             "scan": scan_config,
             "symbols": symbols,
+            "symbol_tv": symbol_tv,
             "results": df,
             "table_fields": available,
         },
