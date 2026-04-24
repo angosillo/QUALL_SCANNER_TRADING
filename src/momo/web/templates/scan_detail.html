@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}{{ scan['scan']['name'] }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="actions-row">
+        <h2 style="margin:0; flex:1">{{ scan['scan']['name'] }} — {{ results | length }} resultados</h2>
+        <form action="/scans/run/{{ scan['scan']['id'] }}" method="post">
+            <button type="submit" class="btn">🔄 Re-ejecutar</button>
+        </form>
+        <a href="/scan/{{ scan['scan']['id'] }}.csv" class="btn">📄 Export CSV</a>
+    </div>
+
+    <div class="filter-bar">
+        <label>Filtrar:</label>
+        <input type="text" id="symbol-filter" placeholder="Símbolo...">
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    {% for field in fields %}
+                    <th>{{ field }}</th>
+                    {% endfor %}
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for _, row in results.iterrows() %}
+                <tr class="result-row" data-symbol="{{ row['symbol'] }}">
+                    {% for field in fields %}
+                    <td>
+                        {% if field == 'symbol' %}
+                        <a href="/symbol/{{ row[field] }}">{{ row[field] }}</a>
+                        {% else %}
+                        {{ '%.2f' | format(row[field]) if row[field] is number else row[field] }}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td>
+                        {% if not watchlists.empty %}
+                        <form action="/watchlists/{{ watchlists.iloc[0]['id'] }}/add" method="post" class="inline">
+                            <input type="hidden" name="symbol" value="{{ row['symbol'] }}">
+                            <button type="submit" class="btn btn-small">+ WL</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

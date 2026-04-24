@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{{ symbol }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="actions-row">
+        <h2 style="margin:0; flex:1">{{ symbol }}</h2>
+        {% if not watchlists.empty %}
+        <form action="/watchlists/{{ watchlists.iloc[0]['id'] }}/add" method="post" class="inline">
+            <input type="hidden" name="symbol" value="{{ symbol }}">
+            <button type="submit" class="btn">+ Añadir a watchlist</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="symbol-grid">
+    <div class="card">
+        <h2>Indicadores</h2>
+        {% if indicators is not none and not indicators.empty %}
+        {% set row = indicators.iloc[0] %}
+        <ul class="indicators-list">
+            {% for label, key in [
+                ('Close','close'), ('Volume','volume'), ('ADR% 20d','adr_pct_20'),
+                ('Trend Intensity','trend_intensity'), ('Composite Score','composite_score'),
+                ('Growth 5d','price_growth_5d'), ('Growth 1m','price_growth_1m'),
+                ('Growth 3m','price_growth_3m'), ('Growth 6m','price_growth_6m'),
+                ('Growth 1y','price_growth_1y'), ('Rank 5d','rank_5d'),
+                ('Rank 1m','rank_1m'), ('Rank 3m','rank_3m'), ('Rank 6m','rank_6m')
+            ] %}
+            {% if key in row and row[key] is not none %}
+            <li>
+                <span class="label">{{ label }}</span>
+                <span class="value">{{ '%.2f' | format(row[key]) if row[key] is number else row[key] }}</span>
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">No hay indicadores disponibles.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>Gráfico</h2>
+        {% if chart_dict %}
+        <div id="chart" style="width:100%; height:500px;"></div>
+        {% else %}
+        <p>No hay datos suficientes para el gráfico.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <h2>Historial (últimas 20 sesiones)</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Fecha</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th></tr>
+            </thead>
+            <tbody>
+                {% for _, row in history.iterrows() %}
+                <tr>
+                    <td>{{ row['date'] }}</td>
+                    <td>{{ '%.2f' | format(row['open']) }}</td>
+                    <td>{{ '%.2f' | format(row['high']) }}</td>
+                    <td>{{ '%.2f' | format(row['low']) }}</td>
+                    <td>{{ '%.2f' | format(row['close']) }}</td>
+                    <td>{{ '{:,.0f}'.format(row['volume']) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if chart_dict %}
+<script>
+    var chartData = {{ chart_dict | tojson }};
+    Plotly.newPlot('chart', chartData.data, chartData.layout, {responsive: true});
+</script>
+{% endif %}
+{% endblock %}

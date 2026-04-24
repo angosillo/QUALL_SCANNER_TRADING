@@ -19,3 +19,12 @@ history_days = 504             # ~2 years of trading days
 update_universe_days = 7       # Re-fetch ticker list weekly
 yfinance_batch_size = 80       # Tickers per yfinance download batch
 yfinance_batch_delay = 2.0     # Seconds between batches
+
+[web]
+host = "0.0.0.0"
+port = 8000
+title = "MOMO Scanner"
+theme = "dark"
+results_page_size = 50
+chart_days = 120
+chart_smas = [20, 50, 200]

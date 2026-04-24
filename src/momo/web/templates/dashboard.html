@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="actions-row">
+        <h2 style="margin:0; flex:1">Scans configurados</h2>
+        <form action="/scans/run" method="post">
+            <button type="submit" class="btn">🔄 Re-ejecutar todos</button>
+        </form>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>ID</th>
+                    <th>Side</th>
+                    <th>Freq</th>
+                    <th>Habilitado</th>
+                    <th>Resultados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scan in scans %}
+                {% set info = scan['scan'] %}
+                {% set scan_id = info['id'] %}
+                <tr>
+                    <td><a href="/scan/{{ scan_id }}">{{ info.get('name', scan_id) }}</a></td>
+                    <td>{{ scan_id }}</td>
+                    <td>{{ info.get('side', '-') }}</td>
+                    <td>{{ info.get('frequency', '-') }}</td>
+                    <td>{{ '✓' if info.get('enabled', True) else '✗' }}</td>
+                    <td>{{ result_counts.get(scan_id, 0) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

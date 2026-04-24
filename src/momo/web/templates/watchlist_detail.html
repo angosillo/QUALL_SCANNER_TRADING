@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}{{ watchlist['name'] }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="actions-row">
+        <h2 style="margin:0; flex:1">{{ watchlist['name'] }}</h2>
+        {% if watchlist.get('auto_populate_scan') %}
+        <form action="/watchlists/{{ watchlist['id'] }}/auto_populate" method="post" class="inline">
+            <button type="submit" class="btn">🔄 Auto-populate ({{ watchlist['auto_populate_scan'] }})</button>
+        </form>
+        {% endif %}
+    </div>
+    <p style="color:var(--text-muted); margin-top:0.25rem">{{ watchlist.get('description', '') }}</p>
+</div>
+
+<div class="card">
+    <h2>Añadir símbolo</h2>
+    <form action="/watchlists/{{ watchlist['id'] }}/add" method="post" class="watchlist-form">
+        <input type="text" name="symbol" placeholder="Símbolo (ej: AAPL)" required>
+        <input type="text" name="notes" placeholder="Notas (opcional)">
+        <button type="submit" class="btn">Añadir</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Símbolos ({{ items | length }})</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Símbolo</th>
+                    <th>Añadido</th>
+                    <th>Flag</th>
+                    <th>Close</th>
+                    <th>Volume</th>
+                    <th>ADR% 20d</th>
+                    <th>Trend Int.</th>
+                    <th>Score</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for _, row in items.iterrows() %}
+                <tr>
+                    <td><a href="/symbol/{{ row['symbol'] }}">{{ row['symbol'] }}</a></td>
+                    <td>{{ row.get('added_at', '') }}</td>
+                    <td>{{ '⚑' if row.get('flagged') else '' }}</td>
+                    <td>{{ '%.2f' | format(row['close']) if row['close'] is number else '-' }}</td>
+                    <td>{{ '{:,.0f}'.format(row['volume']) if row['volume'] is number else '-' }}</td>
+                    <td>{{ '%.2f' | format(row['adr_pct_20']) if row['adr_pct_20'] is number else '-' }}</td>
+                    <td>{{ '%.2f' | format(row['trend_intensity']) if row['trend_intensity'] is number else '-' }}</td>
+                    <td>{{ '%.2f' | format(row['composite_score']) if row['composite_score'] is number else '-' }}</td>
+                    <td>
+                        <form action="/watchlists/{{ watchlist['id'] }}/remove/{{ row['symbol'] }}" method="post" class="inline">
+                            <button type="submit" class="btn btn-small btn-danger">Remover</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

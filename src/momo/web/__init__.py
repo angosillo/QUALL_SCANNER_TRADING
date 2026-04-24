@@ -1,0 +1,1 @@
+"""MOMO Scanner web dashboard."""

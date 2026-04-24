@@ -203,3 +203,112 @@ def save_plotly_chart(
     fig.write_html(str(out))
     logger.info(f"Saved plotly chart: {out}")
     return str(out)
+
+
+def build_plotly_figure(
+    df: pd.DataFrame,
+    symbol: str,
+    days: int = 120,
+    show_sma: list[int] | None = None,
+    show_volume: bool = True,
+) -> dict:
+    """
+    Retorna el dict JSON de una figura Plotly para embeber en HTML
+    via <div id="chart"></div> + Plotly.newPlot().
+
+    Args:
+        df: DataFrame con columnas date, open, high, low, close, volume
+        symbol: ticker a graficar
+        days: número de sesiones a mostrar
+        show_sma: periodos de SMA a overlayear (ej [20, 50])
+        show_volume: si incluir panel de volumen
+
+    Returns:
+        dict con keys "data" y "layout" (formato Plotly JSON)
+    """
+    try:
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+    except ImportError:
+        logger.error("plotly not installed")
+        raise
+
+    if df.empty:
+        raise ValueError(f"No data for {symbol}")
+
+    df = df.copy()
+    if "date" in df.columns:
+        df["date"] = pd.to_datetime(df["date"])
+
+    df = df.tail(days)
+
+    if show_volume and "volume" in df.columns:
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.05,
+            row_heights=[0.75, 0.25],
+        )
+    else:
+        fig = go.Figure()
+
+    # Candlestick trace
+    candle = go.Candlestick(
+        x=df["date"],
+        open=df["open"],
+        high=df["high"],
+        low=df["low"],
+        close=df["close"],
+        name=symbol,
+    )
+
+    if show_volume and "volume" in df.columns:
+        fig.add_trace(candle, row=1, col=1)
+    else:
+        fig.add_trace(candle)
+
+    # SMA overlays
+    if show_sma:
+        for period in show_sma:
+            col_name = f"SMA{period}"
+            df[col_name] = df["close"].rolling(window=period).mean()
+            sma_trace = go.Scatter(
+                x=df["date"],
+                y=df[col_name],
+                mode="lines",
+                name=f"SMA {period}",
+                line={"width": 1},
+            )
+            if show_volume and "volume" in df.columns:
+                fig.add_trace(sma_trace, row=1, col=1)
+            else:
+                fig.add_trace(sma_trace)
+
+    # Volume bars
+    if show_volume and "volume" in df.columns:
+        colors = ["#3fb950" if c >= o else "#f85149" for c, o in zip(df["close"], df["open"])]
+        vol_trace = go.Bar(
+            x=df["date"],
+            y=df["volume"],
+            marker_color=colors,
+            name="Volume",
+            showlegend=False,
+        )
+        fig.add_trace(vol_trace, row=2, col=1)
+        fig.update_yaxes(title_text="Volume", row=2, col=1)
+
+    fig.update_layout(
+        title=f"{symbol}",
+        xaxis_rangeslider_visible=False,
+        template="plotly_dark",
+        hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin=dict(l=50, r=50, t=60, b=40),
+        paper_bgcolor="#0d1117",
+        plot_bgcolor="#161b22",
+    )
+
+    fig.update_xaxes(title_text="Date", row=1 if (show_volume and "volume" in df.columns) else 1, col=1)
+    fig.update_yaxes(title_text="Price", row=1, col=1)
+
+    return fig.to_dict()

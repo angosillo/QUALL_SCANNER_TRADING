@@ -258,6 +258,20 @@ def cmd_watchlist(args):
             print(items.to_string(index=False))
 
 
+def cmd_web(args):
+    """Launch the web dashboard."""
+    import uvicorn
+    from momo.web.app import create_app
+    db_path = get_db_path()
+    app = create_app(db_path=db_path)
+    uvicorn.run(
+        app,
+        host=args.host,
+        port=args.port,
+        log_level=args.log_level.lower(),
+    )
+
+
 def cli():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -293,6 +307,11 @@ def cli():
 
     # tui
     subparsers.add_parser("tui", help="Launch interactive TUI dashboard")
+
+    # web
+    p_web = subparsers.add_parser("web", help="Launch web dashboard")
+    p_web.add_argument("--host", default="0.0.0.0")
+    p_web.add_argument("--port", type=int, default=8000)
 
     # watchlist
     p_watchlist = subparsers.add_parser("watchlist", help="Manage watchlists")
@@ -333,6 +352,7 @@ def cli():
         "scan": cmd_scan,
         "full": cmd_full,
         "tui": cmd_tui,
+        "web": cmd_web,
         "watchlist": cmd_watchlist,
     }
 

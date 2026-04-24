@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Watchlists{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Nueva watchlist</h2>
+    <form action="/watchlists" method="post" class="watchlist-form">
+        <input type="text" name="name" placeholder="Nombre" required>
+        <input type="text" name="description" placeholder="Descripción">
+        <select name="auto_populate_scan">
+            <option value="">Sin auto-populate</option>
+            {% for sid in scan_ids %}
+            <option value="{{ sid }}">{{ sid }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn">Crear</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Watchlists</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Auto-populate</th>
+                    <th>Items</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for _, wl in watchlists.iterrows() %}
+                <tr>
+                    <td><a href="/watchlists/{{ wl['id'] }}">{{ wl['name'] }}</a></td>
+                    <td>{{ wl.get('description', '') }}</td>
+                    <td>{{ wl.get('auto_populate_scan', '') or '-' }}</td>
+                    <td>{{ wl.get('item_count', 0) }}</td>
+                    <td>
+                        <form action="/watchlists/{{ wl['id'] }}/rename" method="post" class="inline">
+                            <input type="text" name="name" value="{{ wl['name'] }}" size="12">
+                            <button type="submit" class="btn btn-small">Renombrar</button>
+                        </form>
+                        <form action="/watchlists/{{ wl['id'] }}/delete" method="post" class="inline" onsubmit="return confirmDelete('{{ wl['name'] }}');">
+                            <button type="submit" class="btn btn-small btn-danger">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
