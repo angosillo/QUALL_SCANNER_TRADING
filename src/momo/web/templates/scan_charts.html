@@ -11,39 +11,105 @@
     </div>
 </header>
 
+{% macro fmt_mcap(v) %}{% if v == None or v == 0 %}N/D{% elif v >= 1000000000 %}${{ "%.1f"|format(v/1000000000) }}B{% elif v >= 1000000 %}${{ "%.0f"|format(v/1000000) }}M{% else %}${{ "%.0f"|format(v/1000) }}K{% endif %}{% endmacro %}
+{% macro fmt_float(v) %}{% if v == None or v == 0 %}N/D{% elif v >= 1000000 %}{{ "%.1f"|format(v/1000000) }}M{% else %}{{ "%.0f"|format(v/1000) }}K{% endif %}{% endmacro %}
+{% macro fmt_x(v) %}{% if v == None %}N/D{% else %}{{ "%.1f"|format(v) }}x{% endif %}{% endmacro %}
+
+{% macro mcap_class(v) %}{% if v == None or v == 0 %}grey{% elif v >= 100000000 and v <= 2000000000 %}green{% elif v >= 50000000 %}yellow{% else %}red{% endif %}{% endmacro %}
+{% macro float_class(v) %}{% if v == None or v == 0 %}grey{% elif v >= 5000000 and v <= 50000000 %}green{% elif v <= 100000000 %}yellow{% else %}red{% endif %}{% endmacro %}
+{% macro rvol_class(v) %}{% if v == None %}grey{% elif v >= 2.0 %}green{% elif v >= 1.5 %}yellow{% else %}red{% endif %}{% endmacro %}
+{% macro rot_class(v) %}{% if v == None %}grey{% elif v >= 0.2 and v <= 1.0 %}green{% elif v > 1.0 and v <= 3.0 %}yellow{% elif v < 0.05 %}red{% elif v > 3.0 %}red{% else %}yellow{% endif %}{% endmacro %}
+
 {% if symbols %}
 <section class="chart-grid-section">
     <h2>Gráficos ({{ symbols|length }} acciones)</h2>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+
     <div class="chart-grid">
-        {% for sym in symbols %}
+        {% for _, row in results.iterrows() %}
+        {% set sym = row['symbol'] %}
+        {% set exch = row['exchange'] if 'exchange' in row and row['exchange'] else '' %}
+        {% set tv_sym = exch ~ ':' ~ sym if exch else sym %}
+        {% set meta = symbol_meta.get(sym, {}) %}
+        {% set mc   = meta.get('market_cap') %}
+        {% set fl   = meta.get('float_shares') %}
+        {% set rv   = meta.get('rvol') %}
+        {% set ro   = meta.get('float_rotation') %}
+        {% set sec  = meta.get('sector', '') %}
         <div class="chart-card">
             <div class="chart-header">
                 <a href="/symbol/{{ sym }}" class="symbol-link">{{ sym }}</a>
+                {% if sec %}<span class="sector-tag">{{ sec }}</span>{% endif %}
             </div>
             <div class="chart-container">
                 <div class="tradingview-widget-container" style="width:100%;height:100%;">
-                  <div id="tv_chart_{{ sym }}" style="height:100%;width:100%;"></div>
-                  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js">
-                  {
-                    "width": "100%",
-                    "height": "100%",
-                    "symbol": "{{ sym }}",
-                    "interval": "D",
-                    "timezone": "Etc/UTC",
-                    "theme": "dark",
-                    "style": "1",
-                    "locale": "es",
-                    "enable_publishing": false,
-                    "allow_symbol_change": true,
-                    "calendar": false,
-                    "support_host": "https://www.tradingview.com"
-                  }
-                  </script>
+                  <div id="tv_chart_{{ sym }}" class="tv-lazy-placeholder" data-symbol="{{ tv_sym }}" style="height:100%;width:100%;">
+                      <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;font-size:0.9em;">
+                          Cargando {{ sym }}…
+                      </div>
+                  </div>
                 </div>
+            </div>
+            <div class="badge-row">
+                <span class="badge badge-{{ mcap_class(mc) }}" title="Market Cap | Rango ideal: $100M–$2B">
+                    🏦 {{ fmt_mcap(mc) }}
+                </span>
+                <span class="badge badge-{{ float_class(fl) }}" title="Float (acciones libres) | Ideal: 5M–50M shares">
+                    📦 Float {{ fmt_float(fl) }}
+                </span>
+                <span class="badge badge-{{ rvol_class(rv) }}" title="Relative Volume (vol hoy / avg 20d) | Ideal: >2x">
+                    📊 RVOL {{ fmt_x(rv) }}
+                </span>
+                <span class="badge badge-{{ rot_class(ro) }}" title="Float Rotation (vol hoy / float) | Ideal: 0.2–1x">
+                    🔄 Rot {{ fmt_x(ro) }}
+                </span>
             </div>
         </div>
         {% endfor %}
     </div>
+
+    <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        const observerOptions = {
+            root: null,
+            rootMargin: '400px', // Load just before scrolling into view
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const symbol = el.getAttribute('data-symbol');
+                    const containerId = el.id;
+                    
+                    // Clear the placeholder text
+                    el.innerHTML = '';
+                    
+                    new TradingView.widget({
+                        "autosize": true,
+                        "symbol": symbol,
+                        "interval": "D",
+                        "timezone": "Etc/UTC",
+                        "theme": "dark",
+                        "style": "1",
+                        "locale": "es",
+                        "enable_publishing": false,
+                        "allow_symbol_change": true,
+                        "calendar": false,
+                        "container_id": containerId
+                    });
+                    
+                    observer.unobserve(el);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.tv-lazy-placeholder').forEach(el => {
+            observer.observe(el);
+        });
+    });
+    </script>
 </section>
 
 <section class="table-section">
@@ -151,6 +217,37 @@
     left: 0;
     width: 100%;
     height: 100%;
+}
+.badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.6rem 0.8rem;
+    background: var(--bg-overlay);
+    border-top: 1px solid var(--border-default);
+}
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    cursor: default;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+.badge-green  { background: rgba(63,185,80,0.15);  color: #3fb950; border-color: rgba(63,185,80,0.35); }
+.badge-yellow { background: rgba(210,153,34,0.15); color: #d9a520; border-color: rgba(210,153,34,0.35); }
+.badge-red    { background: rgba(248,81,73,0.15);  color: #f85149; border-color: rgba(248,81,73,0.35); }
+.badge-grey   { background: rgba(139,148,158,0.12);color: #8b949e; border-color: rgba(139,148,158,0.25); }
+.sector-tag {
+    font-size: 0.7rem;
+    color: #8b949e;
+    background: rgba(139,148,158,0.12);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
 }
 .table-section {
     margin-top: 2rem;
