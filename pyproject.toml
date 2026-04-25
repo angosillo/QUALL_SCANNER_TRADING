@@ -4,23 +4,33 @@ version = "0.1.0"
 description = "Momentum stock scanner inspired by Qullamaggie's methodology"
 requires-python = ">=3.12"
 
-[project.dependencies]
-pandas = ">=2.2"
-numpy = ">=1.26"
-pandas-ta = ">=0.3"
-requests = ">=2.31"
-apscheduler = ">=3.10"
-python-telegram-bot = ">=21"
-mplfinance = ">=0.12"
-plotly = ">=5.22"
-textual = ">=0.80"
-rich = ">=13.7"
-tomli = ">=2.0"
+dependencies = [
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "pandas-ta>=0.3",
+    "requests>=2.31",
+    "apscheduler>=3.10",
+    "python-telegram-bot>=21",
+    "mplfinance>=0.12",
+    "plotly>=5.22",
+    "textual>=0.80",
+    "rich>=13.7",
+    "tomli>=2.0",
+    "yfinance>=0.2",
+    "pyarrow>=10.0"
+]
 
 [project.optional-dependencies]
-web = ["fastapi>=0.111", "uvicorn>=0.30", "jinja2>=3.1"]
+web = ["fastapi>=0.111", "uvicorn>=0.30", "jinja2>=3.1", "python-multipart>=0.0.9"]
 polygon = ["websocket-client>=1.8"]
 dev = ["pytest>=8.2", "ruff>=0.5"]
 
 [project.scripts]
 momo = "momo.main:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/momo"]
