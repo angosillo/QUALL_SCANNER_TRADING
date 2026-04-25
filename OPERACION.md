@@ -7,13 +7,16 @@ No se necesitan conocimientos técnicos.
 
 ## Antes de empezar — ¿Desde dónde se ejecuta?
 
-El proyecto corre dentro de **WSL2 (Ubuntu)**, no directamente en Windows.
+> **IMPORTANTE**: El dashboard corre en el **servidor Hetzner**, no en tu máquina local de Windows.
+> Tu máquina local solo tiene el código para editarlo. El servidor es quien lo ejecuta y sirve la web.
 
-Para abrirlo hay dos formas:
-- Buscar **"Ubuntu"** en el menú de inicio de Windows y abrirlo
-- Abrir **PowerShell** y escribir `wsl` y pulsar Enter
+Para controlarlo hay que conectarse al servidor por SSH. Desde **PowerShell** en tu máquina Windows:
 
-A partir de ahí, todos los comandos de esta guía se escriben en esa ventana de Ubuntu (fondo negro con texto, como un terminal de Linux).
+```powershell
+ssh administrator@65.108.100.152
+```
+
+Una vez dentro del servidor, todos los comandos de esta guía se escriben ahí.
 
 ---
 
