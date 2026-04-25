@@ -22,7 +22,7 @@ A partir de ahí, todos los comandos de esta guía se escriben en esa ventana de
 Solo hace falta hacerlo una vez cuando se instala en un equipo nuevo.
 
 ```bash
-cd ~/momo-scanner
+cd /mnt/c/PLATZI/QUALL_SCANNER_TRADING
 pip install -e ".[web]"
 PYTHONPATH=src python3 -m momo init
 ```
@@ -40,7 +40,7 @@ Cada vez que se quiera usar el dashboard hay que arrancar el servidor.
 **Paso 2** — Escribir este comando y pulsar Enter:
 
 ```bash
-cd ~/momo-scanner && PYTHONPATH=src python3 -m momo web --host 0.0.0.0 --port 8000
+cd /mnt/c/PLATZI/QUALL_SCANNER_TRADING && PYTHONPATH=src python3 -m momo web --host 0.0.0.0 --port 8000
 ```
 
 **Paso 3** — Esperar hasta que aparezca algo como:
@@ -69,7 +69,7 @@ Necesario después de actualizar el código con `git pull`.
 **Paso 3** — Volver a ejecutar el comando de inicio:
 
 ```bash
-cd ~/momo-scanner && PYTHONPATH=src python3 -m momo web --host 0.0.0.0 --port 8000
+cd /mnt/c/PLATZI/QUALL_SCANNER_TRADING && PYTHONPATH=src python3 -m momo web --host 0.0.0.0 --port 8000
 ```
 
 **Paso 4** — Cuando aparezca `Uvicorn running on...`, pulsar **F5** en el navegador.
@@ -98,7 +98,7 @@ Ejemplo: `http://65.108.100.XXX:8000`
 Cuando se notifique que hay una actualización disponible:
 
 ```bash
-cd ~/momo-scanner
+cd /mnt/c/PLATZI/QUALL_SCANNER_TRADING
 git pull origin main
 ```
 
@@ -117,7 +117,7 @@ Ir a la ventana de Ubuntu donde corre el servidor y pulsar `Ctrl + C`.
 Si los scans no tienen resultados o se quieren actualizar:
 
 ```bash
-cd ~/momo-scanner
+cd /mnt/c/PLATZI/QUALL_SCANNER_TRADING
 PYTHONPATH=src python3 -m momo scan
 ```
 
@@ -140,7 +140,7 @@ Y volver a iniciar.
 ### "No hay resultados en los scans"
 Los datos de mercado no están descargados. Ejecutar:
 ```bash
-cd ~/momo-scanner
+cd /mnt/c/PLATZI/QUALL_SCANNER_TRADING
 PYTHONPATH=src python3 -m momo download
 PYTHONPATH=src python3 -m momo scan
 ```
@@ -151,7 +151,7 @@ Verificar que el servidor tiene acceso a internet y que no hay extensiones bloqu
 
 ### "Permission denied" al ejecutar comandos
 ```bash
-chmod +x ~/momo-scanner/start-web.sh
+chmod +x /mnt/c/PLATZI/QUALL_SCANNER_TRADING/start-web.sh
 ```
 
 ---
@@ -160,9 +160,9 @@ chmod +x ~/momo-scanner/start-web.sh
 
 | Acción | Comando |
 |---|---|
-| Iniciar servidor | `cd ~/momo-scanner && PYTHONPATH=src python3 -m momo web --host 0.0.0.0 --port 8000` |
+| Iniciar servidor | `cd /mnt/c/PLATZI/QUALL_SCANNER_TRADING && PYTHONPATH=src python3 -m momo web --host 0.0.0.0 --port 8000` |
 | Parar servidor | `Ctrl + C` en la ventana del servidor |
-| Actualizar código | `cd ~/momo-scanner && git pull origin main` |
+| Actualizar código | `cd /mnt/c/PLATZI/QUALL_SCANNER_TRADING && git pull origin main` |
 | Ejecutar scans | `PYTHONPATH=src python3 -m momo scan` |
 | URL local | `http://localhost:8000` |
 | URL servidor | `http://<IP>:8000` |
